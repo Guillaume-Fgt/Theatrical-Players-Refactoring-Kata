@@ -1,5 +1,6 @@
 import math
 from dataclasses import dataclass
+from typing import Generator
 
 
 AMOUNT_PER_TYPE = {
@@ -70,7 +71,7 @@ class Play:
         )
 
 
-def construct_play(invoices: dict, plays: dict):
+def construct_play(invoices: dict, plays: dict) -> Generator[dict, None, None]:
     for perf in invoices["performances"]:
         perf["customer"] = invoices["customer"]
         perf["name"] = plays[perf["playID"]]["name"]
