@@ -30,16 +30,6 @@ AMOUNT_PER_TYPE = {
 }
 
 
-def calc_amount_invoice(spec_num: int, play_parameters: dict[str, int]) -> int:
-    """calculate the invoice amount for a particular play"""
-    base, aud_bonus, aud_threshold, aud_base = play_parameters.values()
-    return (
-        base
-        + aud_bonus * (max(spec_num, aud_threshold) - aud_threshold)
-        + aud_base * spec_num
-    )
-
-
 def format_as_dollars(amount):
     return f"${amount:0,.2f}"
 
@@ -53,8 +43,13 @@ class Play:
     type: str
     volume_credits: int = 0
 
-    def calculate_amount(self, parameters: dict[str, int]) -> int:
-        return calc_amount_invoice(self.audience, parameters)
+    def calc_amount_invoice(self, play_parameters: dict[str, int]) -> int:
+        base, aud_bonus, aud_threshold, aud_base = play_parameters.values()
+        return (
+            base
+            + aud_bonus * (max(self.audience, aud_threshold) - aud_threshold)
+            + aud_base * self.audience
+        )
 
     def get_parameters(self) -> dict[str, int]:
         parameters = AMOUNT_PER_TYPE.get(self.type)
@@ -71,7 +66,7 @@ class Play:
     def print_play(self):
         return (
             f" {self.name}:"
-            f" {format_as_dollars(self.calculate_amount(self.get_parameters())/100)} ({self.audience} seats)\n"
+            f" {format_as_dollars(self.calc_amount_invoice(self.get_parameters())/100)} ({self.audience} seats)\n"
         )
 
 
@@ -97,7 +92,7 @@ def statement(invoice: dict, plays: dict, html: bool = False) -> str:
 
     for play in my_list_plays:
         parameters = play.get_parameters()
-        total_amount += play.calculate_amount(parameters)
+        total_amount += play.calc_amount_invoice(parameters)
         volume_credits += play.calculate_volume_credits()
         result += play.print_play()
 
