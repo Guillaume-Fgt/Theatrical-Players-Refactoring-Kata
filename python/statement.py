@@ -30,18 +30,13 @@ AMOUNT_PER_TYPE = {
 }
 
 
-def calc_amount_invoice(
-    spec_num: int,
-    base: int,
-    audience_bonus: int,
-    audience_threshold: int,
-    audience_base: int,
-) -> int:
+def calc_amount_invoice(spec_num: int, play_parameters: dict[str, int]) -> int:
     """calculate the invoice amount for a particular play"""
+    base, aud_bonus, aud_threshold, aud_base = play_parameters.values()
     return (
         base
-        + audience_bonus * (max(spec_num, audience_threshold) - audience_threshold)
-        + audience_base * spec_num
+        + aud_bonus * (max(spec_num, aud_threshold) - aud_threshold)
+        + aud_base * spec_num
     )
 
 
@@ -58,11 +53,14 @@ class Play:
     type: str
     volume_credits: int = 0
 
-    def calculate_amount(self) -> int:
+    def calculate_amount(self, parameters: dict[str, int]) -> int:
+        return calc_amount_invoice(self.audience, parameters)
+
+    def get_parameters(self) -> dict[str, int]:
         parameters = AMOUNT_PER_TYPE.get(self.type)
         if not parameters:
             raise ValueError(f"unknown type: {self.type}")
-        return calc_amount_invoice(self.audience, **parameters)
+        return parameters
 
     def calculate_volume_credits(self) -> int:
         self.volume_credits += max(self.audience - 30, 0)
@@ -73,7 +71,7 @@ class Play:
     def print_play(self):
         return (
             f" {self.name}:"
-            f" {format_as_dollars(self.calculate_amount()/100)} ({self.audience} seats)\n"
+            f" {format_as_dollars(self.calculate_amount(self.get_parameters())/100)} ({self.audience} seats)\n"
         )
 
 
@@ -98,7 +96,8 @@ def statement(invoice: dict, plays: dict, html: bool = False) -> str:
     my_list_plays = map(create_play_classes, cleaned_data)
 
     for play in my_list_plays:
-        total_amount += play.calculate_amount()
+        parameters = play.get_parameters()
+        total_amount += play.calculate_amount(parameters)
         volume_credits += play.calculate_volume_credits()
         result += play.print_play()
 
