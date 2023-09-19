@@ -1,0 +1,13 @@
+{
+  "customer": "BigCoIII",
+  "performances": [
+    {
+      "playID": "henry-vi",
+      "audience": 62
+    },
+    {
+      "playID": "as-like-ii",
+      "audience": 58
+    }
+  ]
+}
