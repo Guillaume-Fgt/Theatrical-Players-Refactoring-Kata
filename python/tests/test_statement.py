@@ -20,7 +20,7 @@ def test_example_statement_html() -> None:
         invoice = json.loads(f.read())
     with open(get_adjacent_file("plays.json")) as f:
         plays = json.loads(f.read())
-    verify(statement(invoice, plays, html=True))
+    verify(statement(invoice, plays, "html"))
 
 
 def test_statement_with_new_play_types() -> None:

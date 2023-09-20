@@ -1,6 +1,6 @@
 import math
 from dataclasses import dataclass
-from typing import Generator
+from typing import Callable, Generator
 
 
 AMOUNT_PER_TYPE = {
@@ -28,6 +28,20 @@ AMOUNT_PER_TYPE = {
         "audience_threshold": 10,
         "audience_base": 200,
     },
+}
+
+
+def return_text(str_to_return: str) -> str:
+    return str_to_return
+
+
+def return_html(str_to_return: str) -> str:
+    return "<p>" + str_to_return.replace("\n", "<br>") + "</p>"
+
+
+OUTPUT_TYPE: dict[str, Callable[[str], str]] = {
+    "text": return_text,
+    "html": return_html,
 }
 
 
@@ -83,7 +97,7 @@ def create_play_classes(perf) -> Play:
     return Play(**perf)
 
 
-def statement(invoice: dict, plays: dict, html: bool = False) -> str:
+def statement(invoice: dict, plays: dict, output_type: str = "text") -> str:
     total_amount = 0
     volume_credits = 0
     result = f'Statement for {invoice["customer"]}\n'
@@ -99,4 +113,6 @@ def statement(invoice: dict, plays: dict, html: bool = False) -> str:
 
     result += f"Amount owed is {format_as_dollars(total_amount/100)}\n"
     result += f"You earned {volume_credits} credits\n"
-    return "<p>" + result.replace("\n", "<br>") + "</p>" if html else result
+
+    output_func = OUTPUT_TYPE.get(output_type)
+    return output_func(result)
